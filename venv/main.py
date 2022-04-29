@@ -16,7 +16,6 @@ class RestAPI_OK:
         self.session_secret_key = ''
 
 
-
     @staticmethod
     def calc_md5(**kwargs):
         return hashlib.md5("".join([key + '=' + value for key, value in kwargs.items()]).encode('utf-8')).hexdigest()
@@ -52,33 +51,38 @@ class RestAPI_OK:
         return all_guest
 
 
-    def param_resp_guests(self, uids, method=method2):
-        sig = hashlib.md5((f'application_key={self.application_key}fields=NAMEformat=jsonmethod={method}uids={uids}{self._signature()}').encode('utf-8')).hexdigest()
-        params_resp = {
-            'application_key': f'{self.application_key}',
-            'fields': 'NAME',
-            'format': 'json',
-            'method': f'{method}',
-            'uids': f'{uids}',
-            'sig': f'{sig}',
-            'access_token': f'{self.access_token}'
-        }
-        return params_resp
+    def param_resp_guests(self, method=method2):
+        lst_uids = []
+        count = 0
+        for uids in self.response():
+            sig = hashlib.md5((f'application_key={self.application_key}fields=NAMEformat=jsonmethod={method}uids={self.response()[count]}{self._signature()}').encode('utf-8')).hexdigest()
+            params_resp = {
+                'application_key': f'{self.application_key}',
+                'fields': 'NAME',
+                'format': 'json',
+                'method': f'{method}',
+                'uids': f'{self.response()[count]}',
+                'sig': f'{sig}',
+                'access_token': f'{self.access_token}'
+            }
+            lst_uids.append(params_resp)
+            count += 1
+        return lst_uids
 
 
     def show_my_guests(self):
-        guests_all = []
+        guests_name = []
         count = 0
-        for name in self.response():
+        for name in self.param_resp_guests():
             resp = requests.get(self.url, params=self.param_resp_guests()[count], timeout=5)
-            guests_all.append()
+            guests_name.append(resp.json())
             count += 1
-        return guests_all
+        return guests_name
 
 
 
 First_Resp = RestAPI_OK()
 First_Resp.calc_md5()
 First_Resp.response()
-pprint(First_Resp.param_resp_guests())
-# print(First_Resp.show_my_guests())
+# pprint(First_Resp.param_resp_guests())
+print(First_Resp.show_my_guests())
